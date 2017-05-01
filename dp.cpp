@@ -38,7 +38,7 @@ bool DPSolve::contains(const Clause & c, Literal l) {
 }
 
 
-bool DPSolve::DPSolve::resolution(Var v, const Clause & c1, const Clause & c2, const Clause & r) {
+bool DPSolve::DPSolve::resolution(Var v, const Clause & c1, const Clause & c2, Clause & r) {
 
   
   // pravimo novu klauzu r i iz nje izbacujemo literal l
@@ -109,16 +109,19 @@ bool DPSolve::eliminate(Var v) {
 
 bool DPSolve::checkIfSat() {
   
-  return true;
+  for(unsigned i = 0; i < _num; i++)
+      if(!eliminate(i))
+	return false;
+    return true;
   
 }
 
 int main () {
   unsigned num_of_vars;
 
-  Variable p = 0;
-  Variable q = 1;
-  Variable r = 2;
+  Var p = 0;
+  Var q = 1;
+  Var r = 2;
   Literal pp = litFromVar(p, POSITIVE);
   Literal np = litFromVar(p, NEGATIVE);
   Literal pq = litFromVar(q, POSITIVE);
@@ -126,7 +129,7 @@ int main () {
   Literal pr = litFromVar(r, POSITIVE);
   Literal nr = litFromVar(r, NEGATIVE);
   
-  Formula f = { { pp, nq, pr }, { np, nq }, { pq, pp, nr }, { pq, np, nr } };
+  FormulaCNF f = { { pp, nq, pr }, { np, nq }, { pq, pp, nr }, { pq, np, nr } };
 
   // Ako zelimo da citamo iz dimacs fajla, tada treba da otkomentarisemo ovo
   /*  if(!readDIMACS(f, num_of_vars))
@@ -138,7 +141,7 @@ int main () {
   
   DPSolve solver(f, num_of_vars);
 
-  if(!solver.checkSat()) {
+  if(!solver.checkIfSat()) {
 	cout << "UNSAT" << endl;
   }
   else {
