@@ -31,17 +31,55 @@ DPSolve::DPSolve(const FormulaCNF & f, unsigned num)
 
 bool DPSolve::contains(const Clause & c, Literal l) {
   
-  return true;
-  
+  if (c.find(l) != c.end())
+    return true;
+  else
+    return false;
 }
 
-bool DPSolve::DPSolve::resolution(Literal l, Clause & c1, Clause & c2, Clause & r) {
+bool DPSolve::DPSolve::resolution(Var v, const Clause & c1, const Clause & c2, const Clause & r) {
   
   return true;
   
 }
 
 bool DPSolve::eliminate(Var v) {
+  
+  FormulaCNF nf;
+  
+  Literal pv = litFromVar(v, POSITIVE);
+  Literal nv = litFromVar(v, NEGATIVE);
+
+  // For every clause c1 from F
+    for(const Clause & c1 : _formula){	       
+	if(!contains(c1, pv)){
+	    if(!contains(c1, nv))
+	      nf.insert(c1);
+
+	    // If clause does not contain v we skip it
+	    continue;
+	  }
+
+	// If clause c1 contains v
+	for(const Clause & c2 : _formula){
+
+	    // we find clause c2 that contains nv
+	    if(!contains(c2, nv))
+	      continue;
+
+	    // apply resolution for v
+	    Clause r;
+	    // if not tautology
+	    if(resolution(v, c1, c2, r)){
+		if(!r.empty())
+		  nf.insert(r);
+		else return false;
+	      }
+	  }
+      }
+    _formula = move(nf);
+    return true;
+  
   
   return true;
   
