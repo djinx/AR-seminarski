@@ -148,5 +148,16 @@ int main () {
 	cout << "SAT" << endl;
   }
   
+  FormulaCNF f1 = { { np, nq, pr }, {np, pq}, { pp }, {nr} };
+  
+  DPSolve solver1(f1, num_of_vars);
+
+  if(!solver1.checkIfSat()) {
+	cout << "UNSAT" << endl;
+  }
+  else {
+	cout << "SAT" << endl;
+  }
+  
   return 0;
 }
