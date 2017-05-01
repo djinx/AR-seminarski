@@ -74,7 +74,36 @@ bool DPSolve::checkIfSat() {
 }
 
 int main () {
+  unsigned num_of_vars;
+
+  Variable p = 0;
+  Variable q = 1;
+  Variable r = 2;
+  Literal pp = litFromVar(p, POSITIVE);
+  Literal np = litFromVar(p, NEGATIVE);
+  Literal pq = litFromVar(q, POSITIVE);
+  Literal nq = litFromVar(q, NEGATIVE);
+  Literal pr = litFromVar(r, POSITIVE);
+  Literal nr = litFromVar(r, NEGATIVE);
   
-  cout << "Ne radi nistaa!! " << endl;
+  Formula f = { { pp, nq, pr }, { np, nq }, { pq, pp, nr }, { pq, np, nr } };
+
+  // Ako zelimo da citamo iz dimacs fajla, tada treba da otkomentarisemo ovo
+  /*  if(!readDIMACS(f, num_of_vars))
+    {
+      cerr << "Error reading input file" << endl;
+      exit(1);
+    }
+  */
+  
+  DPSolve solver(f, num_of_vars);
+
+  if(!solver.checkSat()) {
+	cout << "UNSAT" << endl;
+  }
+  else {
+	cout << "SAT" << endl;
+  }
+  
   return 0;
 }
