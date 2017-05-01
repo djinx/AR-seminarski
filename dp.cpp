@@ -35,10 +35,30 @@ bool DPSolve::contains(const Clause & c, Literal l) {
   
 }
 
-bool DPSolve::DPSolve::resolution(Literal l, Clause & c1, Clause & c2, Clause & r) {
+bool DPSolve::DPSolve::resolution(Var v, Clause & c1, Clause & c2, Clause & r) {
   
+  // pravimo novu klauzu r i iz nje izbacujemo literal l
+  r = c1;
+  r.erase(litFromVar(v, POSITIVE));
+  
+  Literal k = litFromVar(v, NEGATIVE);
+  
+  // zatim u r ubacujemo sve literale iz c2 koji nisu ~l
+  for(Literal l : c2){
+	if( l != k ){
+	  // proveravamo da li u klauzi r postoji literal suprotan literalu l
+	  if(r.find(oppositeLiteral(l)) == r.end() ){
+		r.insert(l);
+	  }
+	  else{
+		// ako r sadrzi suprotan literal onda je r tautologija
+		return false;
+	  }
+	}
+  }
+  
+  // ima jos literala u klauzi tj. nije tautologija
   return true;
-  
 }
 
 bool DPSolve::eliminate(Var v) {
@@ -54,8 +74,6 @@ bool DPSolve::checkIfSat() {
 }
 
 int main () {
-  
-  
   
   cout << "Ne radi nistaa!! " << endl;
   return 0;

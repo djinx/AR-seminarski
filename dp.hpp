@@ -3,7 +3,8 @@
 #include <iostream>
 #include <vector>
 #include <cstdlib>
-
+#include <set>
+#include <algorithm>
 
 using namespace std;
 
@@ -31,10 +32,10 @@ bool isNegative(Literal l);
 Literal oppositeLiteral(Literal l);
 
 /* Klauza ce biti predstavljena vektorom (dinamickim nizom) literala */
-typedef vector<Literal> Clause;
+typedef set<Literal> Clause;
 
 /* Formula je vektor (niz) klauza */
-typedef vector<Clause> FormulaCNF;
+typedef set<Clause> FormulaCNF;
 
 
 class DPSolve {
@@ -48,9 +49,10 @@ public:
   
   /* funkcija koja primenjuje pravilo rezolucije nad klauzama c1 i c2 
 	 po literalu l - jedna sadrzi l a druga ~l
+	 prosledjuje se v da bismo lakse dobili l i ~l
 	 r je rezultujuca klauza koja ne sadrzi l
   */
-  bool resolution(Literal l, Clause & c1, Clause & c2, Clause & r);
+  bool resolution(Var v, Clause & c1, Clause & c2, Clause & r);
   
   // funkcija koja uklanja iskazno slovo v iz formule primenom pravila rezolucije
   bool eliminate(Var v);
