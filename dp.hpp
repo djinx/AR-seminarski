@@ -13,7 +13,7 @@ typedef unsigned Literal;
 enum Polarity {POSITIVE, NEGATIVE};
 
 
-/* Dobijanje literala datog polariteta iz varijable */
+// Konverzija promenljive u literal datog polariteta
 Literal litFromVar(Variable v, Polarity p);
 
 /* Dobijanje varijable iz literala proizvoljnog polariteta */
