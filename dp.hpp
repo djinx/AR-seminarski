@@ -48,6 +48,7 @@ public:
   
   /* funkcija koja primenjuje pravilo rezolucije nad klauzama c1 i c2 
 	 po literalu l - jedna sadrzi l a druga ~l
+	 prosledjuje se v da bismo lakse dobili l i ~l
 	 r je rezultujuca klauza koja ne sadrzi l
   */
   bool resolution(Var v, const Clause & c1, const Clause & c2, const Clause & r);
