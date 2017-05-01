@@ -1,11 +1,14 @@
 #include "dp.hpp"
+#include "fol.hpp"
 
 
-Literal litFromVar(Variable v, Polarity p) {
-  return p == POSITIVE ? v << : (v << 1) | 1;
+extern int yyparse();
+
+Literal litFromVar(Var v, Polarity p) {
+  return p == POSITIVE ? v << 1 : (v << 1) | 1;
 }
 
-Variable varFromLit(Literal l){
+Var varFromLit(Literal l){
   return l >> 1;
 }
 
@@ -21,20 +24,34 @@ Literal oppositeLiteral(Literal l) {
   return l ^ 1;
 }
 
-typedef vector<Literal> Clause;
-typedef vector<Clause> Formula;
 
+DPSolve::DPSolve(const FormulaCNF & f, unsigned num)
+  :_formula(f), _num(num)
+  {}
 
-DPSolve::DPSolve(const Formula & f, unsigned num);
+bool DPSolve::contains(const Clause & c, Literal l) {
+  
+  return true;
+  
+}
 
-bool DPSolve::contains(const Clause & c, Literal l);
+bool DPSolve::DPSolve::resolution(Literal l, Clause & c1, Clause & c2, Clause & r) {
+  
+  return true;
+  
+}
 
-bool DPSolve::DPSolve::resolution(Literal l, Clause & c1, Clause & c2, Clause & r);
+bool DPSolve::eliminate(Var v) {
+  
+  return true;
+  
+}
 
-bool DPSolve::eliminate(Variable v);
-
-bool DPSolve::checkIfSat();
-
+bool DPSolve::checkIfSat() {
+  
+  return true;
+  
+}
 
 int main () {
   

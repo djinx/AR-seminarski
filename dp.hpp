@@ -7,17 +7,17 @@
 
 using namespace std;
 
-typedef unsigned Variable;
+typedef unsigned Var;
 typedef unsigned Literal;
 
 enum Polarity {POSITIVE, NEGATIVE};
 
 
 // Konverzija promenljive u literal datog polariteta
-Literal litFromVar(Variable v, Polarity p);
+Literal litFromVar(Var v, Polarity p);
 
 /* Dobijanje varijable iz literala proizvoljnog polariteta */
-Variable varFromLit(Literal l);
+Var varFromLit(Literal l);
 
 /* Ispitivanje da li je literal pozitivan (ako je broj paran, tj. ako
    je najnizi bit 0) */
@@ -34,14 +34,14 @@ Literal oppositeLiteral(Literal l);
 typedef vector<Literal> Clause;
 
 /* Formula je vektor (niz) klauza */
-typedef vector<Clause> Formula;
+typedef vector<Clause> FormulaCNF;
 
 
 class DPSolve {
   
 public:
   // konstruktor
-  DPSolve(const Formula & f, unsigned num);
+  DPSolve(const FormulaCNF & f, unsigned num);
   
   // funkcija koja proverava da li klauza c sadrzi literal l
   bool contains(const Clause & c, Literal l);
@@ -53,7 +53,7 @@ public:
   bool resolution(Literal l, Clause & c1, Clause & c2, Clause & r);
   
   // funkcija koja uklanja iskazno slovo v iz formule primenom pravila rezolucije
-  bool eliminate(Variable v);
+  bool eliminate(Var v);
   
   // funkcija koja proverava zadovoljivost formule
   bool checkIfSat();
@@ -61,7 +61,7 @@ public:
   
   
 private:
-  Formula _formula; // formula ciju zadovoljivost proveravamo
+  FormulaCNF _formula; // formula ciju zadovoljivost proveravamo
   unsigned _num; // broj promenljivih u formuli
   
 };
