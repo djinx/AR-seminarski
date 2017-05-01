@@ -9,9 +9,13 @@ Variable varFromLit(Literal l){
   return l >> 1;
 }
 
-bool isPositive(Literal l);
+bool isPositive(Literal l){
+  return !(l & 1);
+}
 
-bool isNegative(Literal l);
+bool isNegative(Literal l){
+  return l & 1;
+}
 
 Literal oppositeLiteral(Literal l) {
   return l ^ 1;
