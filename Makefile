@@ -1,10 +1,13 @@
 
 
-dp: dp.o parser.o lexer.o
-	g++ -std=c++11 -o dp dp.o parser.o lexer.o
+dp: dp.o fol.o parser.o lexer.o
+	g++ -std=c++11 -o dp dp.o fol.o parser.o lexer.o
 
 dp.o: dp.cpp fol.hpp
 	g++ -std=c++11 -c -o dp.o dp.cpp
+
+fol.o: fol.cpp fol.hpp
+	g++ -std=c++11 -c -o fol.o fol.cpp
 
 parser.o: parser.cpp fol.hpp
 	g++ -std=c++11 -c -o parser.o parser.cpp

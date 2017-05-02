@@ -18,6 +18,7 @@ class BaseTerm;
 typedef shared_ptr<BaseTerm> Term;
 
 
+
 class BaseTerm : public enable_shared_from_this<BaseTerm> {
 
 public:
@@ -97,6 +98,15 @@ public:
 class BaseFormula;
 typedef shared_ptr<BaseFormula> Formula;
 
+typedef vector<Formula> LiteralList;
+typedef vector<LiteralList> LiteralListList;
+
+
+template <typename T>
+T concatLists(const T & c1, const T & c2);
+LiteralListList makePairs(const LiteralListList & c1, 
+			  const LiteralListList & c2);
+
 class BaseFormula : public enable_shared_from_this<BaseFormula> {
   
 public:
@@ -106,6 +116,9 @@ public:
 
   virtual void printFormula(ostream & ostr) const = 0;
   virtual Type getType() const = 0;
+  virtual Formula simplify() = 0;
+  virtual Formula nnf() = 0;
+  virtual LiteralListList listCNF() = 0;
   virtual ~BaseFormula() {}
 };
 
@@ -113,6 +126,15 @@ public:
 
 class AtomicFormula : public BaseFormula {
 public:
+  virtual Formula simplify() {
+	// nemamo sta da pojednostavimo
+	return shared_from_this();
+  }
+  
+  virtual Formula nnf() {
+	// atomicka formula je vec u nnf-u
+	return shared_from_this();
+  }
 };
 
 
@@ -135,6 +157,10 @@ public:
     return T_TRUE;
   }
 
+  virtual LiteralListList listCNF() {
+	// prazan skup klauza se interpretira kao True
+	return { };
+  }
 };
 
 
@@ -149,6 +175,11 @@ public:
   virtual Type getType() const
   {
     return T_FALSE;
+  }
+  
+  virtual LiteralListList listCNF() {
+	// prazna klauza se interpretira kao False
+	return {{}};
   }
 };
 
@@ -195,6 +226,11 @@ public:
     return T_ATOM;
   }
 
+  virtual LiteralListList listCNF() {
+	// pozitivan atom se predstavlja listom klauza koja sadrzi jednu klauzu sa tim atomom
+	return {{shared_from_this()}};
+  }
+  
 };
 
 class Equality : public Atom {
@@ -293,6 +329,30 @@ public:
   {
     return T_NOT;
   }
+  
+  virtual Formula simplify() {
+	Formula simplified = _op->simplify();
+	
+	// ~True = False
+	if(simplified->getType() == T_TRUE) {
+	  return make_shared<False>();
+	}
+	// ~False = True
+	else if(simplified->getType() == T_FALSE) {
+	  return make_shared<True>();
+	}
+	//nemamo sta da pojednostavimo
+	else {
+	  return make_shared<Not>(simplified);
+	}
+  }
+  
+  virtual Formula nnf();
+  
+  virtual LiteralListList listCNF() {
+	// pozitivan atom se predstavlja listom klauza koja sadrzi jednu klauzu sa tim atomom
+	return {{shared_from_this()}};
+  }
 };
 
 
@@ -355,7 +415,44 @@ public:
   {
     return T_AND;
   }
- };
+  
+  virtual Formula simplify() {
+	Formula simplified1 = _op1->simplify();
+	Formula simplified2 = _op2->simplify();
+	
+	//True & A === A
+	if(simplified1->getType() == T_TRUE){
+	  return simplified2;
+	}
+	//A & True === A
+	else if(simplified2->getType() == T_TRUE){
+	  return simplified1;
+	}
+	//A & False === False & A === False
+	else if(simplified1->getType() == T_FALSE || 
+			simplified2->getType() == T_FALSE
+	){
+	  return make_shared<False>();
+	}
+	//nemamo sta da pojednostavimo
+	else{
+	  make_shared<And>(simplified1, simplified2);
+	}
+  }
+  
+  virtual Formula nnf(){
+  return make_shared<And>(_op1->nnf(), _op2->nnf());
+  }
+  
+  virtual LiteralListList listCNF() {
+	// nadovezujemo podformule i dobijamo formulu u CNF
+	LiteralListList c1 = _op1->listCNF();
+	LiteralListList c2 = _op2->listCNF();
+	
+	return concatLists(c1, c2);
+  }
+  
+};
 
 
 
@@ -396,6 +493,45 @@ public:
   {
     return T_OR;
   }
+  
+  virtual Formula simplify(){
+	
+	Formula simplified1 = _op1->simplify();
+	Formula simplified2 = _op2->simplify();
+	
+	//False | A === A
+	if(simplified1->getType() == T_FALSE){
+	  return simplified2;
+	}
+	//A | False === A
+	else if(simplified2->getType() == T_FALSE){
+	  return simplified1;
+	}
+	//A | True === True | A === True
+	else if(simplified1->getType() == T_TRUE || 
+			simplified2->getType() == T_TRUE
+	){
+	  return make_shared<True>();
+	}
+	//nemamo sta da pojednostavimo
+	else{
+	  make_shared<Or>(simplified1, simplified2);
+	}
+  }
+  
+  virtual Formula nnf() {
+	return make_shared<Or>(_op1->nnf(), _op2->nnf());
+  }
+  
+  virtual LiteralListList listCNF() {
+	
+	// disjnkcija se pretvara u cnf tako sto se podformule pomnoze
+	LiteralListList c1 = _op1->listCNF();
+	LiteralListList c2 = _op2->listCNF();
+	
+	return makePairs(c1, c2);
+  }
+  
 };
 
 
@@ -434,6 +570,45 @@ public:
   {
     return T_IMP;
   }
+  
+ 
+  virtual Formula simplify(){
+	
+	Formula simplified1 = _op1->simplify();
+	Formula simplified2 = _op2->simplify();
+	
+	// True => A === A
+	if(simplified1->getType() == T_TRUE){
+	  return simplified2;
+	}
+	// A => True === True
+	else if(simplified2->getType() == T_TRUE){
+	  return make_shared<True>();
+	}
+	// False => A === True
+	else if(simplified1->getType() == T_FALSE){
+	  return make_shared<True>();
+	}
+	// A => False === ~A
+	else if(simplified2->getType() == T_TRUE) {
+	  return make_shared<Not>(simplified1);
+	}
+	// nemamo sta da pojednostavimo
+	else {
+	  return make_shared<Imp>(simplified1, simplified2);
+	}
+  }
+  
+  virtual Formula nnf() {
+	// ~(A => B) === ~A | B
+	return make_shared<Or>(make_shared<Not>(_op1)->nnf(), _op2->nnf());
+  }
+
+  virtual LiteralListList listCNF() {
+	// u ovom trenutku ne bi trebalo da postoji implikacija jer je primenjen nnf
+	throw "CNF not aplicable";
+  }
+  
 };
 
 
@@ -469,8 +644,51 @@ public:
   {
     return T_IFF;
   }
+  
+  virtual Formula simplify() {
+	Formula simplified1 = _op1->simplify();
+	Formula simplified2 = _op2->simplify();
+	
+	// False <=> False === True
+	if(simplified1->getType() == T_FALSE && 
+	   simplified2->getType() == T_FALSE) {
+	  
+	  return make_shared<True>();
+	}
+	// True <=> A === A
+	else if(simplified1->getType() == T_TRUE) {
+	  return simplified2;
+	}
+	// A <=> True  === A
+	else if(simplified2->getType() == T_TRUE) {
+	  return simplified1;
+	}
+	// False <=> A === ~A
+	else if(simplified1->getType() == T_FALSE) {
+	  return make_shared<Not>(simplified2);
+	}
+	// A <=> False === ~A
+	else if(simplified2->getType() == T_FALSE) {
+	  return make_shared<Not>(simplified1);
+	}
+	// nemamo sta da pojednostavimo
+	else{
+	  return make_shared<Iff>(simplified1, simplified2);
+	}
+  }
+  
+  virtual Formula nnf() {
+	// ~(A <=> B) === (~A | B) & (~B | A)
+	return make_shared<And>(make_shared<Or>(make_shared<Not>(_op1)->nnf(), _op2->nnf()),
+			make_shared<Or>(make_shared<Not>(_op2)->nnf(), _op1->nnf()));
+  }
+  
+  virtual LiteralListList listCNF() {
+	// u ovom trenutku ne bi trebalo da postoji implikacija jer je primenjen nnf
+	throw "CNF not aplicable";
+  }
+  
 };
-
 
 class Quantifier : public BaseFormula {
 protected:
@@ -520,6 +738,19 @@ public:
        op_type == T_IMP || op_type == T_IFF)
       ostr << ")";
   }
+  
+  virtual Formula simplify() {
+	return shared_from_this();
+  }
+  
+  virtual Formula nnf() {
+	return shared_from_this();
+  }
+  
+  virtual LiteralListList listCNF() {
+	return {{shared_from_this()}};
+  }
+  
 };
 
 class Exists : public Quantifier {
@@ -548,6 +779,19 @@ public:
     if(op_type == T_AND || op_type == T_OR || 
        op_type == T_IMP || op_type == T_IFF)
       ostr << ")";
+  }
+  
+  
+  virtual Formula simplify() {
+	return shared_from_this();
+  }
+  
+  virtual Formula nnf() {
+	return shared_from_this();
+  }
+  
+  virtual LiteralListList listCNF() {
+	return {{shared_from_this()}};
   }
 };
 
