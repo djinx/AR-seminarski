@@ -182,16 +182,6 @@ bool inDimacs(FormulaCNF & f, unsigned & num_of_vars, istream & istr)
 int main () {
   unsigned num_of_vars;
 
-  Var p = 0;
-  Var q = 1;
-  Var r = 2;
-  Literal pp = litFromVar(p, POSITIVE);
-  Literal np = litFromVar(p, NEGATIVE);
-  Literal pq = litFromVar(q, POSITIVE);
-  Literal nq = litFromVar(q, NEGATIVE);
-  Literal pr = litFromVar(r, POSITIVE);
-  Literal nr = litFromVar(r, NEGATIVE);
-
   FormulaCNF f;
   
   if(!inDimacs(f, num_of_vars, cin)){
