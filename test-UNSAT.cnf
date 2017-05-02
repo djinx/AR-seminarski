@@ -1,7 +1,7 @@
-c First example
-p cnf 3 5
-1 -3 0
-2 3 -1 0
--1 -3 2 0
--1 -2 0
-1 3 0
+c Dokazujemo da je formula (A => B) /\ (~A => B) => B tautologija.
+c To radimo tako sto pokazemo da je njena negacija (svedena na CNF)
+c nezadovoljiva. Negacija ove formule je (~A\/B)/\(A\/B)/\(~B).
+p cnf 2 3
+-1 2 0
+1 2 0
+-2 0

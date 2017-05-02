@@ -1,8 +1,7 @@
 #include "fol.hpp"
 
-//*********************************************
-// Pomocne funkcije za baratanje listama 
- /* Funkcija nadovezuje dve liste */
+
+// nadovezivanje listi
 template <typename T>
 T concatLists(const T & c1, const T & c2) {
   T c = c1;
@@ -26,9 +25,6 @@ LiteralListList makePairs(const LiteralListList & c1,
   }
   return c;
 }
-
-//*********************************************
-
 
 
 // funckija nnf() za klasu Not
@@ -69,22 +65,3 @@ Formula Not::nnf() {
 	return shared_from_this();
   }
 }
-/*
-LiteralListList And::listCNF() {
-	// nadovezujemo podformule i dobijamo formulu u CNF
-	LiteralListList c1 = _op1->listCNF();
-	LiteralListList c2 = _op2->listCNF();
-	
-	return concatLists(c1, c2);
-}
-
-LiteralListList Or::listCNF() {
-	// disjnkcija se pretvara u cnf tako sto se podformule pomnoze
-	LiteralListList c1 = _op1->listCNF();
-	LiteralListList c2 = _op2->listCNF();
-	
-	return makePairs(c1, c2);
-	
-  }
-  
-  */
