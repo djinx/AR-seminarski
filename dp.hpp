@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <algorithm>
 #include <set>
+#include <fstream>
 
 using namespace std;
 
@@ -64,13 +65,13 @@ public:
   bool checkIfSat();
   
   // Funkcija koja preskace beline pri ucitavanju iz dimacs formata
-  int skipSpaces();
+  int skipSpaces(ifstream & istr);
   
   // Funkcija koja preskace ostatak reda
-  int skipLine();
+  int skipRestOfLine(ifstream & istr);
   
   // Funkcija koja ucitava DIMACS format
-  bool inDimacs(FormulaCNF & f, unsigned & num_of_vars);
+  bool inDimacs(FormulaCNF & f, unsigned & num_of_vars, ifstream & istr);
   
   
 private:

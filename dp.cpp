@@ -126,52 +126,53 @@ bool DPSolve::checkIfSat() {
   
 }
 
-int skipSpaces(){
-  int ch;
-  while((ch = cin.get()) == ' ' || ch == '\t' || ch == '\n');
-  return ch;
+int skipSpaces(ifstream & istr){
+  int c;
+  while((c = istr.get()) == ' ' || c == '\t' || c == '\n');
+  return c;
 }
 
-void skipRestOfLine(){
-  while(cin.get() != '\n');
+void skipRestOfLine(ifstream & istr){
+  while(istr.get() != '\n');
 }
 
-bool inDimacs(FormulaCNF & f, unsigned & num_of_vars){
+bool inDimacs(FormulaCNF & f, unsigned & num_of_vars, ifstream & istr)
+{
   unsigned num_of_clauses;
   int c;
 
-  // Skip comment lines
-  while((c = skipSpaces()) == 'c'){
-    skipRestOfLine();
-  }
+  // Preskace komentare
+  while((c = skipSpaces(istr)) == 'c')
+    skipRestOfLine(istr);
 
-  // read p line
-  if(c != 'p'){
+  // Cita liniju p cnf nvars nclauses
+  if(c != 'p')
     return false;
-  }
-  else{
+  else
+    {
       string s;
-      cin >> s;
+      istr >> s;
       if(s != "cnf")
 	return false;
       
-      cin >> num_of_vars;
-      cin >> num_of_clauses;
+      istr >> num_of_vars;
+      istr >> num_of_clauses;
     }
 
-  // Read clauses
-  for(unsigned i = 0; i < num_of_clauses; i++){
+  // Citamo klauze
+  for(unsigned i = 0; i < num_of_clauses; i++)
+    {
       Clause c;
       int n;
-      cin >> n; 
-      while(!cin.eof() && !cin.fail() && n != 0){
+      istr >> n; 
+      while(!istr.eof() && !istr.fail() && n != 0)
+	{
 	  c.insert(litFromInt(n));
-	  cin >> n;
+	  istr >> n;
 	}
       
-      if(cin.eof() || cin.fail()){
+      if(istr.eof() || istr.fail())
 	return false;
-      }
 
       f.insert(c);
     }
@@ -180,6 +181,12 @@ bool inDimacs(FormulaCNF & f, unsigned & num_of_vars){
 
 int main () {
   unsigned num_of_vars;
+  
+  ifstream fileDimacs;
+  string fileName;
+  cout << "Unesite ime fajla" << endl;
+  cin >> fileName;
+  fileDimacs.open(fileName);
 
   Var p = 0;
   Var q = 1;
@@ -190,11 +197,11 @@ int main () {
   Literal nq = litFromVar(q, NEGATIVE);
   Literal pr = litFromVar(r, POSITIVE);
   Literal nr = litFromVar(r, NEGATIVE);
-  
-  FormulaCNF f = { { pp, nq, pr }, { np, nq }, { pq, pp, nr }, { pq, np, nr } };
 
+  FormulaCNF f;
+  
   // Ako zelimo da citamo iz dimacs fajla, tada treba da otkomentarisemo ovo
-    if(!inDimacs(f, num_of_vars)){
+    if(!inDimacs(f, num_of_vars, fileDimacs)){
       cerr << "Error reading input file" << endl;
       exit(1);
     }
@@ -202,17 +209,6 @@ int main () {
   DPSolve solver(f, num_of_vars);
 
   if(!solver.checkIfSat()) {
-	cout << "UNSAT" << endl;
-  }
-  else {
-	cout << "SAT" << endl;
-  }
-  
-  FormulaCNF f1 = { { np, nq, pr }, {np, pq}, { pp }, {nr} };
-  
-  DPSolve solver1(f1, num_of_vars);
-
-  if(!solver1.checkIfSat()) {
 	cout << "UNSAT" << endl;
   }
   else {
