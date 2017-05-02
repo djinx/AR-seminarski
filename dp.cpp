@@ -12,6 +12,8 @@ Var varFromLit(Literal l){
   return l >> 1;
 }
 
+
+
 bool isPositive(Literal l){
   return !(l & 1);
 }
@@ -24,6 +26,14 @@ Literal oppositeLiteral(Literal l) {
   return l ^ 1;
 }
 
+
+int intFromLit(Literal l){
+  return isPositive(l) ? (int)varFromLit(l) + 1 : -(int)(varFromLit(l) + 1);
+}
+
+Literal litFromInt(int i){
+  return i > 0 ? litFromVar(i - 1, POSITIVE) : litFromVar(-i - 1, NEGATIVE);
+}
 
 DPSolve::DPSolve(const FormulaCNF & f, unsigned num)
   :_formula(f), _num(num)
@@ -116,6 +126,58 @@ bool DPSolve::checkIfSat() {
   
 }
 
+int skipSpaces(){
+  int ch;
+  while((ch = cin.get()) == ' ' || ch == '\t' || ch == '\n');
+  return ch;
+}
+
+void skipRestOfLine(){
+  while(cin.get() != '\n');
+}
+
+bool inDimacs(FormulaCNF & f, unsigned & num_of_vars){
+  unsigned num_of_clauses;
+  int c;
+
+  // Skip comment lines
+  while((c = skipSpaces()) == 'c'){
+    skipRestOfLine();
+  }
+
+  // read p line
+  if(c != 'p'){
+    return false;
+  }
+  else{
+      string s;
+      cin >> s;
+      if(s != "cnf")
+	return false;
+      
+      cin >> num_of_vars;
+      cin >> num_of_clauses;
+    }
+
+  // Read clauses
+  for(unsigned i = 0; i < num_of_clauses; i++){
+      Clause c;
+      int n;
+      cin >> n; 
+      while(!cin.eof() && !cin.fail() && n != 0){
+	  c.insert(litFromInt(n));
+	  cin >> n;
+	}
+      
+      if(cin.eof() || cin.fail()){
+	return false;
+      }
+
+      f.insert(c);
+    }
+  return true;
+}
+
 int main () {
   unsigned num_of_vars;
 
@@ -132,12 +194,10 @@ int main () {
   FormulaCNF f = { { pp, nq, pr }, { np, nq }, { pq, pp, nr }, { pq, np, nr } };
 
   // Ako zelimo da citamo iz dimacs fajla, tada treba da otkomentarisemo ovo
-  /*  if(!readDIMACS(f, num_of_vars))
-    {
+    if(!inDimacs(f, num_of_vars)){
       cerr << "Error reading input file" << endl;
       exit(1);
     }
-  */
   
   DPSolve solver(f, num_of_vars);
 

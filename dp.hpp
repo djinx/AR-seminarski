@@ -36,6 +36,10 @@ typedef set<Literal> Clause;
 /* Formula je vektor (niz) klauza */
 typedef set<Clause> FormulaCNF;
 
+int intFromLit(Literal l);
+
+Literal litFromInt(int i);
+
 
 class DPSolve {
   
@@ -59,6 +63,14 @@ public:
   // funkcija koja proverava zadovoljivost formule
   bool checkIfSat();
   
+  // Funkcija koja preskace beline pri ucitavanju iz dimacs formata
+  int skipSpaces();
+  
+  // Funkcija koja preskace ostatak reda
+  int skipLine();
+  
+  // Funkcija koja ucitava DIMACS format
+  bool inDimacs(FormulaCNF & f, unsigned & num_of_vars);
   
   
 private:
