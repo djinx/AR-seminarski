@@ -126,17 +126,17 @@ bool DPSolve::checkIfSat() {
   
 }
 
-int skipSpaces(ifstream & istr){
+int skipSpaces(istream & istr){
   int c;
   while((c = istr.get()) == ' ' || c == '\t' || c == '\n');
   return c;
 }
 
-void skipRestOfLine(ifstream & istr){
+void skipRestOfLine(istream & istr){
   while(istr.get() != '\n');
 }
 
-bool inDimacs(FormulaCNF & f, unsigned & num_of_vars, ifstream & istr)
+bool inDimacs(FormulaCNF & f, unsigned & num_of_vars, istream & istr)
 {
   unsigned num_of_clauses;
   int c;
@@ -181,12 +181,6 @@ bool inDimacs(FormulaCNF & f, unsigned & num_of_vars, ifstream & istr)
 
 int main () {
   unsigned num_of_vars;
-  
-  ifstream fileDimacs;
-  string fileName;
-  cout << "Unesite ime fajla" << endl;
-  cin >> fileName;
-  fileDimacs.open(fileName);
 
   Var p = 0;
   Var q = 1;
@@ -200,11 +194,10 @@ int main () {
 
   FormulaCNF f;
   
-  // Ako zelimo da citamo iz dimacs fajla, tada treba da otkomentarisemo ovo
-    if(!inDimacs(f, num_of_vars, fileDimacs)){
-      cerr << "Error reading input file" << endl;
-      exit(1);
-    }
+  if(!inDimacs(f, num_of_vars, cin)){
+	cerr << "Error reading input file" << endl;
+	exit(1);
+  }
   
   DPSolve solver(f, num_of_vars);
 

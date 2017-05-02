@@ -65,13 +65,13 @@ public:
   bool checkIfSat();
   
   // Funkcija koja preskace beline pri ucitavanju iz dimacs formata
-  int skipSpaces(ifstream & istr);
+  int skipSpaces(istream & istr);
   
   // Funkcija koja preskace ostatak reda
-  int skipRestOfLine(ifstream & istr);
+  int skipRestOfLine(istream & istr);
   
   // Funkcija koja ucitava DIMACS format
-  bool inDimacs(FormulaCNF & f, unsigned & num_of_vars, ifstream & istr);
+  bool inDimacs(FormulaCNF & f, unsigned & num_of_vars, istream & istr);
   
   
 private:
