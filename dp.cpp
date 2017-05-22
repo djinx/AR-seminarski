@@ -1,8 +1,4 @@
 #include "dp.hpp"
-#include "fol.hpp"
-
-
-extern int yyparse();
 
 Literal litFromVar(Var v, Polarity p) {
   return p == POSITIVE ? v << 1 : (v << 1) | 1;
@@ -11,7 +7,6 @@ Literal litFromVar(Var v, Polarity p) {
 Var varFromLit(Literal l){
   return l >> 1;
 }
-
 
 
 bool isPositive(Literal l){
