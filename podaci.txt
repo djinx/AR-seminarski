@@ -1,0 +1,16 @@
+problem 	| promenljivih  | klauza     | Memorija		  | SAT/UNSAT
+-------------------------------------------------------------------
+sudoku 		      729	  11788      3.44 GB (Memory out)    SAT 
+		      16	    60       378 KB		     SAT
+		      22	    70       1.84 GB  		     SAT
+                      75            325      Memory out              SAT
+		      32            97       2.31 MB		     SAT
+		      20            44       223 KB		     SAT
+	              30            95       3.44 GB (Memory out)    UNSAT
+		      10            28       133 KB                  UNSAT
+                      6             11       37 KB                   UNSAT 
+	              24            49       338 KB                  UNSAT
+                      50            218      Memory out              UNSAT
+		      100           430      Memory out              UNSAT
+
+             

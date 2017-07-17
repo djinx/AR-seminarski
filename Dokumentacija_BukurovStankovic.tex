@@ -1,0 +1,274 @@
+\documentclass[a4paper, 12pt]{article}
+
+% srpski jezik, utf8
+\usepackage[serbian]{babel}
+\usepackage[utf8]{inputenc}
+
+% podrska za graficke elemente
+\usepackage{graphicx}
+
+% podrska za margine i sl.
+\usepackage{geometry}
+
+% podrska za boje
+\usepackage{xcolor}
+
+% podrska za stavljanje hyperlink-ova u sadrzaj
+\usepackage{hyperref} 
+
+% za [H] u figure
+\usepackage{float} 
+
+% za vertikalno spajanje celija u tabeli
+\usepackage{multirow}
+
+
+% meta-informacije o tekstu
+\author{Bukurov Anja 1082/2016\\Vojislav Stanković 1080/2016}
+\title{Podaci o muzejima}
+\date{\today}
+
+\begin{document}
+
+\begin{titlepage}
+	\centering
+	\noindent{\Large Matematički fakultet\\Univerzitet u Beogradu}
+	
+	\vspace{0.3\textheight}
+	
+	{\Huge DP procedura}
+	\\~
+	\\
+	{\Large — dokumentacija —}
+	
+	\vfill
+	
+	{
+		\Large 
+		\begin{tabular}{|l|l|l|}
+			\hline
+			\multirow{2}{*}{Studenti} & Bukurov Anja        & 1082/2016\\ \cline{2-3}
+			                          & Stanković Vojislav 	& 1080/2016\\
+			\hline
+			Predmet                   & \multicolumn{2}{l|}{Automatsko rezonovanje}\\
+			\hline
+			Školska godina         & \multicolumn{2}{l|}{2016/2017}\\
+			\hline
+			Nastavnik                 & \multicolumn{2}{l|}{dr Filip Marić}\\
+			\hline
+			Datum                     & \multicolumn{2}{l|}{\today}\\
+			\hline
+		\end{tabular}
+	}
+\end{titlepage}
+\newpage
+
+\section{Opis rada}
+
+U ovom radu opsiano je kako smo implementirali DP proceduru u programskom jeziku C++. Opisali smo funckije korišćene za samu porceduru, kao i pomoćne funkcije za rukovanje literalima i klauzama.
+
+Sama procedura implementirana je tako da redom eliminiše jednu po jednu promenljivu iz formule i ako uspe da ih sve eliminiše program vraća SAT, a u suprotom UNSAT.
+
+
+\section{Literali, promenljive i klauze}
+
+\noindent Literali i promenljive su predstavljeni tipom \verb|unsigned|:
+
+\begin{verbatim}
+  typedef unsigned Var;
+  typedef unsigned Literal;
+\end{verbatim}
+
+
+\noindent Klauza je predstavljena skupom literala: 
+\begin{verbatim}
+  typedef set<Literal> Clause;
+\end{verbatim}
+
+\noindent Formula je skup klauza:
+\begin{verbatim}
+  typedef set<Clause> FormulaCNF;
+\end{verbatim}
+
+\noindent Napravili smo nabrojivi tip \verb|Polarity| koji služi za određivanje polariteta literala: 
+\begin{verbatim}
+  enum Polarity {POSITIVE, NEGATIVE};
+\end{verbatim}
+
+
+\subsection{Funkcije}
+
+\noindent Od funkcija za rukovanje literalima i promenljivama, implementirali smo sledeće:
+
+\begin{description}
+	\item[Literal litFromVar(Var v, Polarity p);] ~ 
+	\begin{itemize}
+		\item funkcija za konverziju promenljive u literal datog polariteta
+		\item implementirano pomoću bitovskih operatora
+		\item pozitivni literali predstavljaju se parnim brojevima, a negativni neparnim
+		\item pozitivan literal dobija se šiftovanjem vrednosti promenljive \verb|v| u levo
+		\item negativan literal dobija se šiftovanjem vrednosti promenljive \verb|v| u levo i primeniom bitovske disjunkcije na dobijenu vrednost i 1
+	\end{itemize}
+
+	\item[Var varFromLit(Literal l);] ~ 
+	\begin{itemize}
+		\item funkcija za konverziju literala proizvoljnog polariteta u promenljivu
+		\item implementirano pomoću bitovskih operatora 
+		\item \verb|l| se šiftuje u desno čime se odbacuje najniži bit koji je označavao polaritet literala
+	\end{itemize}
+	
+	\item[bool isPositive(Literal l);] ~ 
+	\begin{itemize}
+		\item funkcija kojom se ispituje da li je literal pozitivan 
+		\item literal je pozitivan ako je broj paran, tj. ako je najniži bit 0
+		\item provera se vrši primenom bitovske konjunkcije na \verb|l| i 1 i negacijom dobijene vrednosti
+	\end{itemize}
+
+	\item[bool isNegative(Literal l);] ~ 
+	\begin{itemize}
+		\item funkcija kojom se ispituje da li je literal negativan 
+		\item literal je negativan ako je broj neparan, tj. ako je najniži bit 1
+		\item provera se vrši primenom bitovske konjunkcije na \verb|l| i 1
+	\end{itemize}
+
+	\item[Literal oppositeLiteral(Literal l);] ~ 
+	\begin{itemize}
+		\item funkcija za dobijanje suprotnog literala
+		\item suprotan literal dobija se invertovanjem najnižeg bita tj. primenom bitovske eksluzivne disjunkcije na \verb|l| i 1
+	\end{itemize} 
+	
+	\item[int intFromLit(Literal l);] ~ 
+	\begin{itemize}
+		\item funkcija za dobijanje celobrojne vrednosti od literala
+		\item proverava se polaritet literala \verb|l| 
+		\item ukoliko je pozitivan, na vrednost dobijenu pozivom funkcije \verb|varFromLit(l)| dodaje se 1 i sve se kastuje u \verb|int|
+		\item ukoliko je negativan, na vrednost dobijenu pozivom funkcije \verb|varFromLit(l)| dodaje se 1 i sve se kastuje u \verb|int| a potom negira
+	\end{itemize}
+
+	\item[Literal litFromInt(int i);] ~ 
+	\begin{itemize}
+		\item funkcija za dobijanje literala od celobrojne vrednosti
+		\item ukoliko je broj \verb|i| pozitivan, pravi se pozitivan literal pozivom funkcije \verb|litFromVar(i - 1, POSITIVE)|
+		\item ukoliko je broj \verb|i| negativan, pravi se negativan literal pozivom funkcije \verb|-litFromVar(i - 1, NEGATIVE)|
+	\end{itemize}
+\end{description}
+
+
+
+
+
+
+\section{Klasa DPSolve}
+
+Klasa DPSolve služi za primenu DP procedure na određenu formulu. Klasa sadrži dva privatna polja:   \verb|FormulaCNF _formula;| koje predstavlja formulu čiju zadovoljivost proveravamo i \verb|unsigned _num;| koje predstavlja broj promenljivih u formuli.
+\\
+\\
+\noindent Od javnih metoda, klasa sadrži:
+
+\begin{description}
+	\item[DPSolve(const FormulaCNF \& f, unsigned num);] ~ 
+	\begin{itemize}
+		\item konstruktor
+	\end{itemize}
+	
+	\item[bool contains(const Clause \& c, Literal l);] ~
+	\begin{itemize}
+		\item funkcija koja proverava da li klauza c sadrzi literal l
+		\item implementarano pomoću metode za pretragu skupa find()
+	\end{itemize}
+
+	\item[bool resolution(Var v, const Clause \& c1, const Clause \& c2, Clause \& r);]
+	~ 
+	\begin{itemize}
+		\item funkcija koja primenjuje pravilo rezolucije nad klauzama \verb|c1| i \verb|c2| po literalu \verb|l| 
+		\item klauza \verb|c1| sadrži pozitivan a \verb|c2| negativan literal \verb|l|
+		\item parametar \verb|v| služi za lakše određivanje pozitivnog i negativnog literala \verb|l|
+		\item \verb|r| je rezultujuća klauza koja ne sadrži \verb|l| 
+		\item na početku, klauza \verb|r| je jednaka klauzi \verb|c1| a onda se iz nje briše pozitivan literal \verb|l|
+		\item zatim se za svaki literal \verb|k| iz klauze \verb|c2| proverava da li je jednak negativnom literalu \verb|l| - njih preskačemo a za ostale proveravamo da li klauza \verb|r| sadrži literal suprotan literalu \verb|k|
+		\item ako je to ispunjeno onda je klauza \verb|r| tautologija i vraća se \verb|false| jer ne može dalje da se primenjuje rezolucija
+		\item ako u \verb|r| nema suprotnog literala literalu \verb|k| onda se on dodaje u klazu \verb|r|
+	\end{itemize}
+
+	\item[bool eliminate(Var v);] ~
+	\begin{itemize}
+		\item funkcija koja uklanja iskazno slovo \verb|v| iz formule primenom pravila rezolucije
+		\item traže se klauze formule \verb|_formula| koje sadrže pozitivan literal koji odgovara promenljivoj \verb|v| i ne sadrže negativan literal koji odgovara promenljivoj \verb|v| i takve klauze dodaje u novu formulu  \verb|nf|
+		\item za svaku pronađenu klauzu  \verb|c1| koja sadrži pozitivan literal traži se klauza  \verb|c2| koja sadrži negativan literal koji odgovara promenljivoj  \verb|v| i nad njima se poziva funkcija  \verb|resolve(v, c1, c2, r)|
+		\item ukoliko neki poziv funkcije  \verb|resolve(v, c1, c2, r)| vrati  praznu klauzu \verb|r| funkcija  \verb|eliminate(v)| vratiće \verb|false| čime se označava da nema više šta da se eliminiše, u suprotnom se klauza  \verb|r| dodaje u novu formulu
+		\item ukoliko nije dobijena nijedna prazna klauza,  \verb|eliminate(v)| vraća \verb|true| a privatno polje \verb|_formula| se menja u novodobijenu formulu
+	\end{itemize}
+
+	\item[bool checkIfSat();] ~
+	\begin{itemize}
+		\item funkcija koja proverava zadovoljivost formule
+		\item za sve promenljive, redom, proverava se da li mogu da se eliminišu \verb|eliminate(v)|
+		\item ukoliko  \verb|eliminate(v)| vrati  \verb|false| to znači da je izvedena prazna klauza i formula je nezadovoljiva, a funkcija vraća \verb|false|
+		\item ukoliko su sve promenljive uspešno eliminisane, vraća se \verb|true|
+	\end{itemize}
+
+	\item[int skipSpaces(istream \& istr);] ~
+	\begin{itemize}
+		\item funkcija koja preskače beline pri učitavanju fajla u DIMACS formatu
+	\end{itemize}
+
+	\item[int skipRestOfLine(istream \& istr);] ~
+	\begin{itemize}
+		\item funkcija koja preskače ostatak reda pri učitavanju fajla u DIMACS formatu
+	\end{itemize}
+	
+	\item[bool inDimacs(FormulaCNF \& f, unsigned \& num\_of\_vars, istream \& istr);] ~ 
+	\begin{itemize}
+		\item funkcija koja učitava fajl u DIMACS formatu
+		\item prilikom čitanja se postavljaju vrednosti privatnih polja \verb|_formula| i \verb|_num|
+	\end{itemize}
+\end{description}
+
+
+\section{Main funkcija}
+
+U okviru main funckije poziva se funkcija za čitanje fajla u DIMACS formatu \verb|inDimacs(f, num, cin)|. Zatim se poziva konstruktor klase \verb|DPSolver(f, num)|. Na kraju se poziva metoda klase \verb|checkIfSat()| koja će vrati  \verb|true| ako je formula zadovoljiva, a u suprotnom vraća  \verb|false|. Na osnovu povratne vrednosti funkcije, na standardni izlaz se ispisuje \verb|SAT| odnosno \verb|UNSAT|.
+
+
+
+\section{Test primeri}
+
+U tabeli \ref{tab:testPrimeri} prikazali smo koliko memorije program koristi za ulaze sa različitim brojem promenljivih i klauza.
+
+
+\begin{table}[H]
+	\centering
+	\label{tab:testPrimeri}
+	\caption{Primeri rada programa}
+	\begin{tabular}{|c|c|c|c|} 
+		\hline
+		promenljivih & klauza & memorija & SAT/UNSAT \\
+		\hline
+		729 & 11788 & 3.44 GB (Memory out) & SAT \\
+		\hline
+		16 & 60 & 378 KB & SAT \\
+		\hline
+		22 & 70 & 1.84 GB & SAT \\
+		\hline
+		75 & 325 & Memory out & SAT \\
+		\hline
+		32 & 97 & 2.31 MB & SAT \\
+		\hline
+		20 & 44 & 223 KB & SAT \\
+		\hline
+		30 & 95 & 3.44 GB (Memory out) & UNSAT \\
+		\hline
+		10  & 28 & 133 KB & UNSAT \\
+		\hline
+		6 & 11 & 37 KB & UNSAT \\
+		\hline 
+		24 & 49 & 338 KB & UNSAT \\
+		\hline
+		50 & 218 & Memory out & UNSAT \\
+		\hline
+		100 & 430 & Memory out & UNSAT \\
+		\hline
+	\end{tabular}
+\end{table}
+
+\end{document}
