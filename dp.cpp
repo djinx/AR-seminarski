@@ -36,10 +36,12 @@ DPSolve::DPSolve(const FormulaCNF & f, unsigned num)
 
 bool DPSolve::contains(const Clause & c, Literal l) {
   
-  if (c.find(l) != c.end())
+  if (c.find(l) != c.end()) {
     return true;
-  else
+	}
+  else {
     return false;
+	}
 }
 
 
@@ -54,16 +56,16 @@ bool DPSolve::DPSolve::resolution(Var v, const Clause & c1, const Clause & c2, C
   
   // zatim u r ubacujemo sve literale iz c2 koji nisu ~l
   for(Literal l : c2){
-	if( l != k ){
-	  // proveravamo da li u klauzi r postoji literal suprotan literalu l
-	  if(r.find(oppositeLiteral(l)) == r.end() ){
-		r.insert(l);
-	  }
-	  else{
-		// ako r sadrzi suprotan literal onda je r tautologija
-		return false;
-	  }
-	}
+		if( l != k ){
+			// proveravamo da li u klauzi r postoji literal suprotan literalu l
+			if(r.find(oppositeLiteral(l)) == r.end() ){
+				r.insert(l);
+			}
+			else{
+			// ako r sadrzi suprotan literal onda je r tautologija
+			return false;
+			}
+		}
   }
   
   // ima jos literala u klauzi tj. nije tautologija
@@ -77,54 +79,58 @@ bool DPSolve::eliminate(Var v) {
   Literal pv = litFromVar(v, POSITIVE);
   Literal nv = litFromVar(v, NEGATIVE);
 
-  // For every clause c1 from F
-    for(const Clause & c1 : _formula){	       
-	if(!contains(c1, pv)){
-	    if(!contains(c1, nv))
-	      nf.insert(c1);
+	// za svaku klauzu c1 iz F
+	for(const Clause & c1 : _formula){
+	// ako klauza sadrzi pozitivan v i ne sadrzi negativan v dodajemo je u formulu
+		if(!contains(c1, pv)){
+			if(!contains(c1, nv)) {
+				nf.insert(c1);
+			}
+			// ako klauza ne sadrzi v preskacemo je
+			continue;
+		}
 
-	    // If clause does not contain v we skip it
-	    continue;
-	  }
+		// ako klauza c1 sadrzi v
+		for(const Clause & c2 : _formula){
 
-	// If clause c1 contains v
-	for(const Clause & c2 : _formula){
-
-	    // we find clause c2 that contains nv
-	    if(!contains(c2, nv))
-	      continue;
-
-	    // apply resolution for v
-	    Clause r;
-	    // if not tautology
-	    if(resolution(v, c1, c2, r)){
-		if(!r.empty())
-		  nf.insert(r);
-		else return false;
-	      }
-	  }
-      }
-    _formula = move(nf);
-    return true;
-  
-  
-  return true;
-  
+			// pronalazimo klauzu c2 koja sadrzi nv
+			if(!contains(c2, nv)) {
+			  continue;
+			}
+			
+			// primenjujemo rezoluciju na v
+			Clause r;
+			// ako nije tautologija
+			if(resolution(v, c1, c2, r)){
+				if(!r.empty()) {
+					nf.insert(r);
+				}
+				else { 
+					return false;
+				}
+			}
+		}
+	}
+	
+	_formula = move(nf);
+	return true;
 }
 
 bool DPSolve::checkIfSat() {
   
-  for(unsigned i = 0; i < _num; i++)
-      if(!eliminate(i))
-	return false;
-    return true;
-  
+  for(unsigned i = 0; i < _num; i++) {
+		if(!eliminate(i)) {
+			return false;
+		}
+	}
+	
+	return true;
 }
 
 int skipSpaces(istream & istr){
   int c;
   while((c = istr.get()) == ' ' || c == '\t' || c == '\n');
-  return c;
+	return c;
 }
 
 void skipRestOfLine(istream & istr){
@@ -141,37 +147,37 @@ bool inDimacs(FormulaCNF & f, unsigned & num_of_vars, istream & istr)
     skipRestOfLine(istr);
 
   // Cita liniju p cnf nvars nclauses
-  if(c != 'p')
+  if(c != 'p') {
     return false;
-  else
-    {
-      string s;
-      istr >> s;
-      if(s != "cnf")
-	return false;
-      
-      istr >> num_of_vars;
-      istr >> num_of_clauses;
-    }
+	}
+  else {
+		string s;
+		istr >> s;
+		if(s != "cnf") {
+			return false;
+		}
+		istr >> num_of_vars;
+		istr >> num_of_clauses;
+	}
 
   // Citamo klauze
-  for(unsigned i = 0; i < num_of_clauses; i++)
-    {
-      Clause c;
-      int n;
-      istr >> n; 
-      while(!istr.eof() && !istr.fail() && n != 0)
-	{
-	  c.insert(litFromInt(n));
-	  istr >> n;
-	}
+  for(unsigned i = 0; i < num_of_clauses; i++) {
+		Clause c;
+		int n;
+		istr >> n; 
+		while(!istr.eof() && !istr.fail() && n != 0) {
+			c.insert(litFromInt(n));
+			istr >> n;
+		}
       
-      if(istr.eof() || istr.fail())
-	return false;
-
-      f.insert(c);
-    }
-  return true;
+		if(istr.eof() || istr.fail()) {
+			return false;
+		}
+		
+		f.insert(c);
+	}
+  
+	return true;
 }
 
 int main () {
@@ -180,17 +186,17 @@ int main () {
   FormulaCNF f;
   
   if(!inDimacs(f, num_of_vars, cin)){
-	cerr << "Error reading input file" << endl;
-	exit(1);
+		cerr << "Error reading input file" << endl;
+		exit(1);
   }
   
   DPSolve solver(f, num_of_vars);
 
   if(!solver.checkIfSat()) {
-	cout << "UNSAT" << endl;
+		cout << "UNSAT" << endl;
   }
   else {
-	cout << "SAT" << endl;
+		cout << "SAT" << endl;
   }
   
   return 0;

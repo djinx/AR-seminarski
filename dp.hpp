@@ -31,10 +31,10 @@ bool isNegative(Literal l);
 /* Dobijanje suprotnog literala (invertovanjem najnizeg bita) */
 Literal oppositeLiteral(Literal l);
 
-/* Klauza ce biti predstavljena vektorom (dinamickim nizom) literala */
+/* Klauza ce biti predstavljena skupom literala */
 typedef set<Literal> Clause;
 
-/* Formula je vektor (niz) klauza */
+/* Formula je skup klauza */
 typedef set<Clause> FormulaCNF;
 
 int intFromLit(Literal l);
